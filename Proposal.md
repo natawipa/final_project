@@ -1,19 +1,25 @@
-# Evaluation
+# Evaluation Process
 
-## Faculty
+## 1. Check that Project Status is "Evaluating"
 
-### 1. Check Member Composition
+Before initiating the evaluation process, ensure that the project's status is set to "Evaluating."
+
+## 2. Randomly Select Three Faculty Members Who Are Not Advisors of Any Project
+
 **Actions:**
-- Objective: Ensure the correct composition of project members (lead, member1, member2).
-- Procedure: Verify that each project contains three distinct roles: lead, member1, and member2.
+- Randomly select a faculty member.
+- Send a request (auto-accept).
 
-### 2. Check Member Project Limit
+## 3. Calculate Score out of 100
+
 **Actions:**
-- Objective: Enforce the rule that each student can be a member of only one project.
-- Procedure: Examine the system to confirm that a student is associated with a maximum of one project.
+- Obtain scores from the randomly selected faculty member, project advisor, and project members.
+- Calculate the overall score.
+- Write the score to the "Evaluate" column in the project.csv file.
 
-### 3. Evaluate Project
+## Calculation Breakdown
+
 **Actions:**
-- Objective: Assess the quality and completeness of submitted projects.
-- Procedure: Review project documentation, code, and outcomes to ensure they meet established standards and expectations.
-
+- Three faculty members contribute to 60% of the total score.
+- Advisor's input contributes to 25% of the total score.
+- The combined input from three project members contributes to 15% of the total score.
