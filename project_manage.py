@@ -68,10 +68,10 @@ class Student(Person):
                 project_id = [row['ProjectID'] for row in invitation_table.filter(lambda row: row['ID'] == self.person_id).table_data]
                 for id in project_id:
                     project = project_table.filter(lambda row: row['ProjectID'] == id).table_data[0]
-                    if project['Member1'] == "Invited" or project_info['Member1'] == "Reject":
+                    if project['Member1'] == "Invited" or project['Member1'] == "Reject":
                         update_data = {'Member1': 'Reject'}
                         Project.update_project(update_data, id)
-                    elif project['Member2'] == "Invited" or project_info['Member2'] == "Reject":
+                    elif project['Member2'] == "Invited" or project['Member2'] == "Reject":
                         update_data = {'Member2': 'Reject'}
                         Project.update_project(update_data, id)
                         
@@ -184,7 +184,7 @@ class Faculty(Person):
                 project_id = [row['ProjectID'] for row in invitation_table.filter(lambda row: row['ID'] == self.person_id).table_data]
                 for id in project_id:
                     project = project_table.filter(lambda row: row['ProjectID'] == id).table_data[0]
-                    if project_info['Advisor'] == "Invited" or project_info['Advisor'] == "Reject":
+                    if project['Advisor'] == "Invited" or project['Advisor'] == "Reject":
                         update_data = {'Advisor': 'Reject'}
                         Project.update_project(update_data, id)
                         
@@ -263,7 +263,7 @@ while True:
 
     if person_role == 'admin':
         admin = Admin(person_info['ID'], person_info['first'], person_info['last'])
-        print(f'{faculty}\n'
+        print(f'{admin}\n'
               f'1. Insert Person \n'
               f'2. Change Password \n'
               f'0. Exit')
@@ -372,7 +372,7 @@ while True:
         project_info = project_table.filter(lambda row: row['Advisor'] == person_id).table_data[0]
         advisor = Advisor(person_info['ID'], person_info['first'], person_info['last'], project_info['ProjectID'],
                     project_info['Title'])
-        print(f'{faculty}\n'
+        print(f'{advisor}\n'
               f'1. Review Project \n'
               f'2. Evaluate Project as Advisor \n'
               f'0. Exit')
