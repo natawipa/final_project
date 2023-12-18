@@ -59,7 +59,7 @@ class Student(Person):
         advisor = 'None'
         status = "Created"
         data = {'ProjectID': project_id, 'Title': title, 'Lead': self.person_id, 'Member1': members[0],
-                'Member2': members[1], 'Advisor': advisor, 'Status': status, 'Evaluate': None}
+                'Member2': members[1], 'Advisor': advisor, 'Status': status, 'Evaluate': "lead|member|member|advisor|faculty|faculty|faculty"}
         project_table.insert(data)
         print(f'Project with title: {title} created, ProjectID: {project_id}')
 
@@ -67,7 +67,7 @@ class Student(Person):
         while True:
             if invitation_table.filter(lambda row: row['ID'] == self.person_id) is None:
                 print("No invitations were dispatched.")
-                return None
+                return 'student'
 
             request_info = invitation_table.filter(lambda row: row['ID'] == self.person_id)
             for row in request_info.table_data:
@@ -110,7 +110,7 @@ class Student(Person):
                 # Check if both members have accepted before deleting other invitations
                 student_ids_table = [row['ID'] for row in person_table.select(['ID']).table_data]
                 if project_info['Member1'] in student_ids_table and project_info['Member2'] in student_ids_table:
-                    invitation_table.delete(lambda row: row['ProjectID'] == project_id and row['type'] == 'student')
+                    invitation_table.delete(lambda row: row['ProjectID'] == project_id and row['type'] == 'member')
                 
                 # Update the role in login_table
                 login_table.update({'role': 'member'}, {'ID': self.person_id})
@@ -155,7 +155,7 @@ class Lead(Person):
             if student_id is not None:
                 if student_data:
                     student_data = student_data.table_data[0]
-                    data = {'ID': student_id, 'type': 'student', 'ProjectID': self.project_id, 'Title': self.title, 'Lead': self.person_id}
+                    data = {'ID': student_id, 'type': 'member', 'ProjectID': self.project_id, 'Title': self.title, 'Lead': self.person_id}
                     invitation_table.insert(data)
                     print(f"Invitation sent to {student_data['first']} {student_data['last']}, ID {student_id}")
                     if project_info['Member1'] == "None":
@@ -175,7 +175,7 @@ class Lead(Person):
             if advisor_id is not None:
                 if advisor_data:
                     advisor_data = advisor_data.table_data[0]
-                    data = {'ID': advisor_id, 'type': 'faculty', 'ProjectID': self.project_id, 'Title': self.title, 'Lead': self.person_id}
+                    data = {'ID': advisor_id, 'type': 'advisor', 'ProjectID': self.project_id, 'Title': self.title, 'Lead': self.person_id}
                     invitation_table.insert(data)
                     print(f"Invitation sent to {advisor_data['first']} {advisor_data['last']}, ID {advisor_id}")
                     project_table.update({'Advisor': 'Invited'}, {'ProjectID': self.project_id})
@@ -208,11 +208,11 @@ class Faculty(Person):
     
     def view_request(self):
         while True:
-            if invitation_table.filter(lambda row: row['ID'] == self.person_id) is None:
+            if invitation_table.filter(lambda row: row['ID'] == self.person_id and row['type'] == 'advisor') is None:
                 print("No invitations were dispatched.")
-                return None
+                return 'faculty'
 
-            request_info = invitation_table.filter(lambda row: row['ID'] == self.person_id)
+            request_info = invitation_table.filter(lambda row: row['ID'] == self.person_id and row['type'] == 'advisor')
             for row in request_info.table_data:
                 print(f"ProjectID: {row['ProjectID']}, Title: {row['Title']} have invited you to be an advisor")
 
@@ -248,7 +248,7 @@ class Faculty(Person):
                 # Check if both members have accepted before deleting other invitations
                 student_ids_table = [row['ID'] for row in person_table.select(['ID']).table_data]
                 if project_info['Advisor'] in student_ids_table:
-                    invitation_table.delete(lambda row: row['ProjectID'] == project_id and row['type'] == 'faculty')
+                    invitation_table.delete(lambda row: row['ProjectID'] == project_id and row['type'] == 'advisor')
                 
                 # Update the role in login_table
                 login_table.update({'role': 'advisor'}, {'ID': self.person_id})
@@ -265,9 +265,29 @@ class Faculty(Person):
                         Project.update_project(update_data, id)
                 
                 invitation_table.delete(lambda row: row['ID'] == self.person_id)
-                return 'student'
+                return 'faculty'
             break
 
+    def evaluate(self):
+        while True:
+            if invitation_table.filter(lambda row: row['ID'] == self.person_id) is None:
+                print("No projects available for evaluation.")
+                return None
+
+            request_info = invitation_table.filter(lambda row: row['ID'] == self.person_id)
+            for row in request_info.table_data:
+                print(f"ProjectID: {row['ProjectID']}, Title: {row['Title']} is available for evaluation")
+
+            while True:
+                project_id = str(input("Which project id do you want to evaluate?: "))
+                if project_id in [row['ProjectID'] for row in request_info.table_data]:
+                    break
+                else:
+                    print("Invalid project ID. Please enter a valid project ID.")
+            Project.evaluate_project(project_id, self.person_id)
+            invitation_table.delete(lambda row: row['ID'] == self.person_id)
+            print("Evaluate Complete.")
+            break
 
 class Advisor(Person):
     def __init__(self, person_id, first_name, last_name, project_id, title):
@@ -282,6 +302,34 @@ class Advisor(Person):
         update_data = {column : data}
         Project.update_project(update_data, self.project_id)
 
+    def invite_faculty(self):
+        faculty_ids_table = [row['ID'] for row in (person_table.filter(lambda row: row['type'] == 'faculty' and row['ID'] != self.person_id)).select(['ID']).table_data]
+        random_faculty = random.sample(faculty_ids_table, 3)
+        for faculty_id in random_faculty:
+            faculty_data = person_table.filter(lambda row: row['ID'] == faculty_id and row['type'] == 'faculty').table_data[0]
+            data = {'ID': faculty_id, 'type': 'faculty', 'ProjectID': self.project_id, 'Title': self.title, 'Lead': self.person_id}
+            invitation_table.insert(data)
+            print(f"Invitation sent to {faculty_data['first']} {faculty_data['last']}, ID {faculty_id}")
+
+    def evaluate(self):
+        while True:
+            if invitation_table.filter(lambda row: row['ID'] == self.person_id) is None:
+                print("No projects available for evaluation.")
+                return None
+
+            request_info = invitation_table.filter(lambda row: row['ID'] == self.person_id)
+            for row in request_info.table_data:
+                print(f"ProjectID: {row['ProjectID']}, Title: {row['Title']} is available for evaluation")
+
+            while True:
+                project_id = str(input("Which project id do you want to evaluate?: "))
+                if project_id in [row['ProjectID'] for row in request_info.table_data]:
+                    break
+                else:
+                    print("Invalid project ID. Please enter a valid project ID.")
+            Project.evaluate_project(project_id, self.person_id)
+            print("Evaluate Complete.")
+            break
 
 class Project:
     def __init__(self, project_id, title, lead, members, advisor, status):
@@ -300,6 +348,61 @@ class Project:
     def update_project(data, project_id):
         update_filter = {'ProjectID': project_id}
         project_table.update(data, update_filter)
+
+    @staticmethod
+    def evaluate_project(project_id, person_id):
+        project_score_list = project_table.filter(lambda row: row['ProjectID'] == 'project_id').table_data[0]
+        project_score_list = project_score_list['Evaluate'].split("|")
+        project_info = project_table.filter(lambda row: row['ProjectID'] == project_id).table_data[0]
+
+        if project_info['Status'] != 'Evaluation':
+            print("Project is not in the evaluation phase.")
+            return
+        
+        person_info = person_table.filter(lambda row: row['ID'] == person_id).table_data[0]
+        score = str(input("Enter score out of 100: "))
+
+        if person_id == project_info['Lead']:
+            project_score_list[0] = score
+        elif person_id == project_info['Member1']:
+            project_score_list[1] = score
+        elif person_id == project_info['Member2']:
+            project_score_list[2] = score
+        elif person_id == project_info['Advisor']:
+            project_score_list[3] = score
+        else:
+            for i in range(4, 7):
+                if project_score_list[i] == 'faculty':
+                    project_score_list[i] = score
+                    break
+        project_score_list = "|".join(project_score_list)
+        Project.update_project({'Evaluate': project_score_list}, project_id)
+        
+        if not all(role in project_score_list for role in ['lead', 'member', 'advisor', 'faculty']):
+            total_score = Project.calculate_project_score(project_id)
+            Project.update_project({'Evaluate': total_score}, project_id)
+            Project.update_project({'Status': 'Evaluated'}, project_id)
+
+    @staticmethod
+    def calculate_project_score(project_id):
+        project_info = project_table.filter(lambda row: row['ProjectID'] == project_id).table_data[0]
+        project_score_list = project_info['Evaluate']
+
+        if None in project_score_list:
+            print("Cannot calculate total score as not all slots are scored.")
+            return None
+
+        lead_score = project_score_list[0] * 0.05
+        member1_score = project_score_list[1] * 0.05
+        member2_score = project_score_list[2] * 0.05
+        advisor_score = project_score_list[3] * 0.25
+        faculty1_score = project_score_list[4] * 0.2
+        faculty2_score = project_score_list[5] * 0.2
+        faculty3_score = project_score_list[6] * 0.2
+
+        total_score = lead_score + member1_score + member2_score + advisor_score + faculty1_score + faculty2_score + faculty3_score
+
+        return total_score
 
 ####################################################################################################
 
@@ -360,7 +463,9 @@ while True:
             print("Insert Person")
             admin.insert_person()
         elif choice == 2:
-            pass
+            id = int(input("Input ID you want to update: "))
+            new_password = int(input("Input updated password: "))
+            login_table.update({'password': new_password}, {'ID': id})
         elif choice == 0:
             exit()
             break
@@ -399,12 +504,13 @@ while True:
 
     elif person_role == 'lead':
         project_info = project_table.filter(lambda row: row['Lead'] == person_id).table_data[0]
-        lead = Lead(person_info['ID'], person_info['first'], person_info['last'], project_info['ProjectID'],
+        lead = Lead(person_id, person_info['first'], person_info['last'], project_info['ProjectID'],
                     project_info['Title'])
         print(f'{lead}\n'
               f'1. Invite Member \n'
               f'2. Invite Advisor \n'
               f'3. Update Project \n'
+              f'4. Evaluate Project as Lead \n'
               f'0. Exit')
         choice = int(input('choice: '))
         if choice == 1:
@@ -428,7 +534,9 @@ while True:
                 elif project_info['Status'] == 'Approved':
                     review_project_choice = input("Do you like to submit the project for evaluation? (y/n): ").lower()
                     if review_project_choice == "y":
-                        lead.update('Status', 'Evaluate Request')  
+                        lead.update('Status', 'Evaluate Request')
+        elif choice == 4:
+            Project.evaluate_project(project_info['ProjectID'], person_id)
         elif choice == 0:
             exit()
             break
@@ -439,10 +547,13 @@ while True:
                     project_info['Title'])
         print(f'{member}\n'
               f'1. View Project \n'
+              f'2. Evaluate Project as Member \n'
               f'0. Exit')
         choice = int(input('choice: '))
         if choice == 1:
             print(f"ProjectID: {project_info['ProjectID']}, Title: {project_info['Title']}, Status: {project_info['Status']}, Evaluate: {project_info['Evaluate']}")
+        elif choice == 2:
+            Project.evaluate_project(project_info['ProjectID'], person_id)
         elif choice == 0:
             exit()
             break
@@ -456,6 +567,8 @@ while True:
         choice = int(input('choice: '))
         if choice == 1:
             faculty.view_request()
+        elif choice == 2:
+            faculty.evaluate()
         elif choice == 0:
             exit()
             break
@@ -467,6 +580,7 @@ while True:
         print(f'{advisor}\n'
               f'1. Review Project \n'
               f'2. Evaluate Project as Advisor \n'
+              f'3. Evaluate Project as Faculty \n'
               f'0. Exit')
         choice = int(input('choice: '))
         if choice == 1:
@@ -476,11 +590,14 @@ while True:
                 if review_project_choice == "y":
                     advisor.update('Status', 'Approved')   
             elif project_info['Status'] == 'Evaluate Request':
-                review_project_choice = input("Sent Project to eveluation? (y/n): ").lower()
+                review_project_choice = input("Sent Project to evaluation? (y/n): ").lower()
                 if review_project_choice == "y":
-                    advisor.update('Status', 'Eveluation') 
+                    advisor.update('Status', 'Evaluation')
+                    advisor.invite_faculty()
         elif choice == 2:
-            pass
+            Project.evaluate_project(project_info['ProjectID'], person_id)
+        elif choice == 3:
+            advisor.evaluate()
         elif choice == 0:
             exit()
             break

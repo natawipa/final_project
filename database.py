@@ -1,6 +1,5 @@
 import csv, os
 
-
 class Database:
     def __init__(self):
         self.tables = []
