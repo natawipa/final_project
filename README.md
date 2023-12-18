@@ -24,22 +24,24 @@
 
 ## Roles and Actions
 
-| Role     | Action                                | Classes/Methods                                  | Completion (%) |
-|----------|---------------------------------------|--------------------------------------------------|-----------------|
-| Admin    | Insert a new person                   | `Admin.insert_person`                            | 100             |
-| Admin    | Change password for a person          | `login_table.update`                             | 100             |
-| Student  | Create a new project                  | `Student.create_project`                         | 100             |
-| Student  | View project invitations              | `Student.view_request`                          | 100             |
-| Lead     | Invite members to the project         | `Lead.invite_member`                             | 100             |
-| Lead     | Invite an advisor to the project      | `Lead.invite_advisor`                            | 100             |
-| Lead     | Update project information            | `Lead.update`                                    | 95             |
-| Lead     | Evaluate the project as the lead       | `Project.evaluate_project`                       | 70             |
-| Member   | View project details                  | `Member.__str__` + `Project.__str__`            | 100             |
-| Member   | Evaluate the project as a member      | `Project.evaluate_project`                       | 70             |
-| Faculty  | View invitations to be an advisor     | `Faculty.view_request`                          | 100             |
-| Faculty  | Evaluate projects as faculty          | `Faculty.evaluate`                              | 70             |
-| Advisor  | Review projects                       | `Advisor.__str__` + `Project.__str__`           | 95             |
-| Advisor  | Evaluate projects as an advisor       | `Advisor.evaluate` + `Advisor.invite_faculty`  | 70             |
+| Role     | Action                                | Classes             | Methods                              | Completion (%) |
+|----------|---------------------------------------|---------------------|--------------------------------------|-----------------|
+| Admin    | Insert a new person                   | `Admin`             | `insert_person`                      | 100             |
+| Admin    | Change password for a person          | `login_table`       | `update`                             | 100             |
+| Student  | Create a new project                  | `Student`           | `create_project`                     | 100             |
+| Student  | View project invitations              | `Student`           | `view_request`                       | 100             |
+| Student  | Receive notifications for requests   | `Student`           | `view_request` + Notification feature| 70              |
+| Lead     | Invite members to the project         | `Lead`              | `invite_member`                      | 100             |
+| Lead     | Invite an advisor to the project      | `Lead`              | `invite_advisor`                     | 100             |
+| Lead     | Update project information            | `Lead`              | `update`                             | 90             |
+| Lead     | Evaluate the project as the lead       | `Project`           | `evaluate_project`                   | 70             |
+| Member   | View project details                  | `Member`            | `__str__` + `Project.__str__`        | 100             |
+| Member   | Evaluate the project as a member      | `Project`           | `evaluate_project`                   | 70             |
+| Faculty  | View invitations to be an advisor     | `Faculty`           | `view_request`                      | 100             |
+| Faculty  | Evaluate projects as faculty          | `Faculty`           | `evaluate`                           | 70             |
+| Advisor  | Review projects                       | `Advisor`           | `__str__` + `Project.__str__`        | 100             |
+| Advisor  | Evaluate projects as an advisor       | `Advisor`           | `evaluate` + `invite_faculty`        | 70             |
+
 
 ## Missing Features and Bugs
 
