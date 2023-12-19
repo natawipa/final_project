@@ -20,7 +20,7 @@
 
 1. Clone the repository: `git clone <repository-url>`
 2. Navigate to the project directory: `cd <project-directory>`
-3. Run the code using a Python interpreter: `python main.py`
+3. Run the code using a Python interpreter: `python project_manage.py` or `python3 project_manage.py`
 
 **Note: If the program is not exited properly, changes made during the program's execution may not be written to the CSV files. Make sure to exit the program to ensure data consistency.**
 
